@@ -91,9 +91,13 @@ def render():
 
                     st.markdown("<br>", unsafe_allow_html=True)
                     if st.button("🗑️  Eliminar vuelo", key=f"del_vuelo_{v['id_vuelo']}"):
-                        sb.table("tbvuelo").delete().eq("id_vuelo", v["id_vuelo"]).execute()
-                        st.session_state.mensaje_exito = "✅ Vuelo eliminado correctamente."
-                        st.rerun()
+                    id_v = v["id_vuelo"]
+                    sb.table("tbreserva").delete().eq("id_vuelo", id_v).execute()
+                    sb.table("tbasiento").delete().eq("id_vuelo", id_v).execute()
+                    sb.table("tbvuelotripulacion").delete().eq("id_vuelo", id_v).execute()
+                    sb.table("tbvuelo").delete().eq("id_vuelo", id_v).execute()
+                    st.session_state.mensaje_exito = "✅ Vuelo eliminado correctamente."
+                    st.rerun()
 
         except Exception as e:
             st.error(str(e))
