@@ -50,7 +50,7 @@ def render():
         col1, col2 = st.columns(2)
         with col1:
             nombre     = st.text_input("Nombre")
-            pasaporte  = st.text_input("Pasaporte (exactamente 15 caracteres)", max_chars=15)
+            pasaporte  = st.text_input("Pasaporte (exactamente 9 caracteres)", max_chars=9)
         with col2:
             apellido     = st.text_input("Apellido")
             nacionalidad = st.text_input("Nacionalidad")
@@ -58,10 +58,10 @@ def render():
         # Indicador longitud pasaporte
         largo = len(pasaporte)
         if largo > 0:
-            if largo < 15:
-                st.warning(f"⚠️ El pasaporte debe tener exactamente 15 caracteres. Llevas {largo}/15.")
+            if largo < 9:
+                st.warning(f"⚠️ El pasaporte debe tener exactamente 9 caracteres. Llevas {largo}/9.")
             else:
-                st.success("✅ Longitud de pasaporte correcta (15/15).")
+                st.success("✅ Longitud de pasaporte correcta (9/9).")
 
         rol_opts = ["Piloto","Copiloto","Azafata","Azafato","Ingeniero de vuelo","Jefe de cabina"]
         rol = st.selectbox("Rol", rol_opts)
@@ -70,7 +70,7 @@ def render():
             if not all([nombre, apellido, rol, pasaporte, nacionalidad]):
                 st.error("❌ Completa todos los campos.")
             elif len(pasaporte) != 15:
-                st.error(f"❌ El pasaporte debe tener exactamente 15 caracteres. Actualmente tiene {len(pasaporte)}.")
+                st.error(f"❌ El pasaporte debe tener exactamente 9 caracteres. Actualmente tiene {len(pasaporte)}.")
             else:
                 try:
                     existe = (
