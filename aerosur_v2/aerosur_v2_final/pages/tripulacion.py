@@ -39,10 +39,13 @@ def render():
                             <div style='font-family:Space Mono,monospace;font-size:0.65rem;color:#5A6A8A;'>ID: {m["id_tripulante"]}</div>
                         </div>
                         """, unsafe_allow_html=True)
-                        if st.button("🗑", key=f"del_trip_{m['id_tripulante']}"):
-                            sb.table("tbtripulacion").delete().eq("id_tripulante", m["id_tripulante"]).execute()
-                            st.session_state.mensaje_exito = "✅ Tripulante eliminado correctamente."
-                            st.rerun()
+                        if st.button("Desasignar", key=f"desasignar_{id_v_actual}_{t.get('id_tripulante')}"):
+                        sb.table("tbvuelotripulacion").delete()\
+                            .eq("id_vuelo", id_v_actual)\
+                            .eq("id_tripulante", t.get("id_tripulante"))\
+                            .execute()
+                        st.session_state.mensaje_exito = f"✅ {tr.get('nombre','')} {tr.get('apellido','')} desasignado del vuelo correctamente."
+                        st.rerun()
         except Exception as e:
             st.error(str(e))
 
@@ -131,16 +134,26 @@ def render():
             id_v_actual = vuelo_opts[vuelo_sel]
             actual = (
                 sb.table("tbvuelotripulacion")
-                .select("tbtripulacion(nombre, apellido, rol)")
+                .select("id_tripulante, tbtripulacion(nombre, apellido, rol)")
                 .eq("id_vuelo", id_v_actual)
                 .execute()
                 .data
             )
             if actual:
-                st.markdown('<div style="font-family:Space Mono,monospace;font-size:0.7rem;color:#5A6A8A;margin-top:1rem;margin-bottom:0.5rem;">TRIPULACIÓN ACTUAL DEL VUELO</div>', unsafe_allow_html=True)
-                for t in actual:
-                    tr = t.get("tbtripulacion") or {}
-                    st.markdown(f"↳ **{tr.get('nombre','')} {tr.get('apellido','')}** · *{tr.get('rol','')}*")
-
+    st.markdown('<div style="font-family:Space Mono,monospace;font-size:0.7rem;color:#5A6A8A;margin-top:1rem;margin-bottom:0.5rem;">TRIPULACIÓN ACTUAL DEL VUELO</div>', unsafe_allow_html=True)
+    
+    for t in actual:
+        tr = t.get("tbtripulacion") or {}
+        col_nombre, col_boton = st.columns([4, 1])
+        with col_nombre:
+            st.markdown(f"↳ **{tr.get('nombre','')} {tr.get('apellido','')}** · *{tr.get('rol','')}*")
+        with col_boton:
+            if st.button("Desasignar", key=f"desasignar_{id_v_actual}_{tr.get('id_tripulante', t)}"):
+                sb.table("tbvuelotripulacion").delete()\
+                    .eq("id_vuelo", id_v_actual)\
+                    .eq("id_tripulante", tr.get("id_tripulante"))\
+                    .execute()
+                st.session_state.mensaje_exito = f"✅ {tr.get('nombre','')} {tr.get('apellido','')} desasignado del vuelo correctamente."
+                st.rerun()
         except Exception as e:
             st.error(str(e))
