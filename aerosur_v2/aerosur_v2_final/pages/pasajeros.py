@@ -69,7 +69,7 @@ def render():
         if st.button("REGISTRAR PASAJERO →", use_container_width=True):
             if not all([nombre, apellido, pasaporte, nacionalidad]):
                 st.error("❌ Completa todos los campos.")
-            elif len(pasaporte) != 15:
+            elif len(pasaporte) != 9:
                 st.error(f"❌ El pasaporte debe tener exactamente 9 caracteres. Actualmente tiene {len(pasaporte)}.")
             else:
                 try:
