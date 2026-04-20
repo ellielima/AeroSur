@@ -82,8 +82,8 @@ def render():
 
         df = pd.DataFrame(data)
 
-        # =========================
-        # 📅 FILTRO POR FECHAS
+       # =========================
+        # 📅 FILTRO POR FECHAS (CORREGIDO)
         # =========================
         st.markdown("### 📅 Filtrar por rango de fechas")
         
@@ -95,15 +95,19 @@ def render():
         with col2:
             fecha_fin = st.date_input("Fecha fin", value=None)
         
-        # Convertir columna Fecha a datetime
+        # Convertir a datetime
         df["Fecha_dt"] = pd.to_datetime(df["Fecha"], errors="coerce")
         
-        # Aplicar filtros
         if fecha_inicio:
-            df = df[df["Fecha_dt"] >= pd.to_datetime(fecha_inicio)]
+            inicio = pd.to_datetime(fecha_inicio)  # 00:00:00
+            df = df[df["Fecha_dt"] >= inicio]
         
         if fecha_fin:
-            df = df[df["Fecha_dt"] <= pd.to_datetime(fecha_fin)]
+            # 👇 CLAVE: agregar 1 día y restar 1 segundo
+            fin = pd.to_datetime(fecha_fin) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+            df = df[df["Fecha_dt"] <= fin]
+        
+        df = df.drop(columns=["Fecha_dt"])
         
         # Eliminar columna auxiliar
         df = df.drop(columns=["Fecha_dt"])
