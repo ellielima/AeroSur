@@ -1,13 +1,12 @@
 import streamlit as st
 import pandas as pd
-from datetime import date
+from datetime import date, datetime #
 from utils.supabase_client import get_client
 
 def render():
     sb = get_client()
     st.markdown('<div class="section-title">👥 Gestión de Pasajeros</div>', unsafe_allow_html=True)
 
-    # Mensaje de éxito persistente
     if st.session_state.get("mensaje_exito"):
         st.success(st.session_state.mensaje_exito)
         st.session_state.mensaje_exito = ""
@@ -33,41 +32,36 @@ def render():
             st.dataframe(df, use_container_width=True, hide_index=True)
 
             st.markdown("---")
-            st.subheader("🛠️ Acciones sobre pasajero")
+            st.subheader("🛠️ Editar Pasajero")
             
-            # Crear un diccionario para identificar al pasajero por ID fácilmente
             dict_pasajeros = {r["id_pasajero"]: r for r in rows}
             ids = list(dict_pasajeros.keys())
             
-            col_sel, col_del = st.columns([2, 1])
-            with col_sel:
-                id_sel = st.selectbox("Seleccionar pasajero para Editar o Eliminar", ids)
-            
-            with col_del:
-                st.write("") # Espaciador
-                if st.button("🗑️ Eliminar Pasajero", use_container_width=True):
-                    sb.table("tbpasajero").delete().eq("id_pasajero", id_sel).execute()
-                    st.session_state.mensaje_exito = "✅ Pasajero eliminado correctamente."
-                    st.rerun()
+            id_sel = st.selectbox("Selecciona el ID del pasajero que deseas modificar", ids)
 
-            # --- SECCIÓN DE EDICIÓN ---
             if id_sel:
                 pasajero_actual = dict_pasajeros[id_sel]
-                st.info(f"Editando a: **{pasajero_actual['nombre']} {pasajero_actual['apellido']}**")
                 
-                with st.form("form_edicion"):
+                # CORRECCIÓN 2: Usamos un formulario con el botón de envío correcto
+                with st.form("mi_formulario_edicion"):
                     c1, c2 = st.columns(2)
                     with c1:
                         new_nombre = st.text_input("Nombre", value=pasajero_actual["nombre"])
                         new_pasaporte = st.text_input("Pasaporte", value=pasajero_actual["pasaporte"], max_chars=9)
-                        # Conversión de fecha de string a objeto date de Python
-                        fecha_val = datetime.strptime(pasajero_actual["fecha_nacimiento"], '%Y-%m-%d').date()
-                        new_nacimiento = st.date_input("Fecha de nacimiento", value=fecha_val)
+                        
+                        # Manejo de la fecha
+                        fecha_str = pasajero_actual["fecha_nacimiento"]
+                        fecha_obj = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+                        new_nacimiento = st.date_input("Fecha de nacimiento", value=fecha_obj)
+                        
                     with c2:
                         new_apellido = st.text_input("Apellido", value=pasajero_actual["apellido"])
                         new_nacionalidad = st.text_input("Nacionalidad", value=pasajero_actual["nacionalidad"])
                     
-                    if st.form_submit_button("💾 GUARDAR CAMBIOS"):
+                    # El botón DEBE ser st.form_submit_button
+                    enviar = st.form_submit_button("💾 GUARDAR CAMBIOS")
+                    
+                    if enviar:
                         if len(new_pasaporte) != 9:
                             st.error("El pasaporte debe tener 9 caracteres.")
                         else:
@@ -82,8 +76,15 @@ def render():
                             st.session_state.mensaje_exito = "✅ Datos actualizados correctamente."
                             st.rerun()
 
+            st.markdown("---")
+            if st.button("🗑️ Eliminar Pasajero Seleccionado"):
+                sb.table("tbpasajero").delete().eq("id_pasajero", id_sel).execute()
+                st.session_state.mensaje_exito = "✅ Pasajero eliminado."
+                st.rerun()
+
         except Exception as e:
             st.error(f"Error: {e}")
+            
     with tab2:
         st.markdown('<div style="font-family:Syne,sans-serif;font-size:0.7rem;letter-spacing:0.15em;color:#5A6A8A;text-transform:uppercase;margin-bottom:1rem;">Registrar nuevo pasajero</div>', unsafe_allow_html=True)
 
