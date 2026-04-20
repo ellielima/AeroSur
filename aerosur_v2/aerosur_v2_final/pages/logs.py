@@ -1,6 +1,42 @@
 import streamlit as st
 import pandas as pd
+import io
+from datetime import date
 from utils.supabase_client import get_client
+
+# PDF
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet
+
+def generar_pdf(df):
+    buffer = io.BytesIO()
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    styles = getSampleStyleSheet()
+    story = []
+
+    # Título
+    story.append(Paragraph("AEROSUR - LOG DE ACCESOS", styles["Title"]))
+    story.append(Spacer(1, 12))
+
+    # Convertir dataframe a tabla
+    data = [df.columns.tolist()] + df.values.tolist()
+
+    table = Table(data)
+    table.setStyle(TableStyle([
+        ("BACKGROUND",(0,0),(-1,0),colors.grey),
+        ("TEXTCOLOR",(0,0),(-1,0),colors.white),
+        ("GRID",(0,0),(-1,-1),0.5,colors.black),
+        ("FONTSIZE",(0,0),(-1,-1),8),
+    ]))
+
+    story.append(table)
+    doc.build(story)
+
+    buffer.seek(0)
+    return buffer
+
 
 def render():
     sb = get_client()
@@ -20,7 +56,7 @@ def render():
             st.info("No hay registros de acceso.")
             return
 
-        # Métricas rápidas
+        # Métricas
         exitosos = sum(1 for r in rows if r["resultado"] == "Exitoso")
         fallidos  = len(rows) - exitosos
 
@@ -31,7 +67,7 @@ def render():
 
         st.markdown("<br>", unsafe_allow_html=True)
 
-        # Tabla de logs
+        # Tabla
         data = []
         for r in rows:
             u = r.get("tbusuario") or {}
@@ -46,12 +82,24 @@ def render():
 
         df = pd.DataFrame(data)
 
-        # Filtro por resultado
+        # Filtro
         filtro = st.selectbox("Filtrar por resultado", ["Todos", "Exitoso", "Fallido"])
         if filtro != "Todos":
             df = df[df["Resultado"].str.contains(filtro)]
 
         st.dataframe(df, use_container_width=True, hide_index=True)
+
+        # =========================
+        # 📄 BOTÓN PDF
+        # =========================
+        pdf = generar_pdf(df)
+
+        st.download_button(
+            label="📄 Descargar PDF",
+            data=pdf,
+            file_name=f"log_accesos_{date.today()}.pdf",
+            mime="application/pdf"
+        )
 
     except Exception as e:
         st.error(str(e))
