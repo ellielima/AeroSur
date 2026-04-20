@@ -50,7 +50,7 @@ def render():
         col1, col2 = st.columns(2)
         with col1:
             nombre    = st.text_input("Nombre")
-            pasaporte = st.text_input("Número de pasaporte (exactamente 15 caracteres)", max_chars=15)
+            pasaporte = st.text_input("Número de pasaporte (exactamente 9 caracteres)", max_chars=9)
             nacimiento = st.date_input("Fecha de nacimiento",
                 value=date(1990, 1, 1),
                 min_value=date(1900, 1, 1),
@@ -61,7 +61,7 @@ def render():
 
         largo = len(pasaporte)
         if largo > 0:
-            if largo < 15:
+            if largo < 9:
                 st.warning(f"⚠️ El pasaporte debe tener exactamente 9 caracteres. Llevas {largo}/9.")
             else:
                 st.success("✅ Longitud de pasaporte correcta (9/9).")
@@ -70,7 +70,7 @@ def render():
             if not all([nombre, apellido, pasaporte, nacionalidad]):
                 st.error("❌ Completa todos los campos.")
             elif len(pasaporte) != 15:
-                st.error(f"❌ El pasaporte debe tener exactamente 15 caracteres. Actualmente tiene {len(pasaporte)}.")
+                st.error(f"❌ El pasaporte debe tener exactamente 9 caracteres. Actualmente tiene {len(pasaporte)}.")
             else:
                 try:
                     existe = sb.table("tbpasajero").select("id_pasajero").eq("pasaporte", pasaporte).execute().data
