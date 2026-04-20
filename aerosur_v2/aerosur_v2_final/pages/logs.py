@@ -82,34 +82,35 @@ def render():
 
         df = pd.DataFrame(data)
 
-       # =========================
-        # 📅 FILTRO POR FECHAS (CORREGIDO)
+      # =========================
+        # 📅 FILTRO POR FECHAS (FIX REAL)
         # =========================
         st.markdown("### 📅 Filtrar por rango de fechas")
         
         col1, col2 = st.columns(2)
         
         with col1:
-            fecha_inicio = st.date_input("Fecha inicio", value=None)
+            fecha_inicio = st.date_input("Fecha inicio")
         
         with col2:
-            fecha_fin = st.date_input("Fecha fin", value=None)
+            fecha_fin = st.date_input("Fecha fin")
         
-        # Convertir a datetime
-        df["Fecha_dt"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        # Convertir correctamente (maneja UTC)
+        df["Fecha_dt"] = pd.to_datetime(df["Fecha"], utc=True)
         
+        # Convertir a hora local (Guatemala UTC-6)
+        df["Fecha_dt"] = df["Fecha_dt"].dt.tz_convert("America/Guatemala")
+        
+        # Aplicar filtro por SOLO fecha (sin hora)
         if fecha_inicio:
-            inicio = pd.to_datetime(fecha_inicio)  # 00:00:00
-            df = df[df["Fecha_dt"] >= inicio]
+            df = df[df["Fecha_dt"].dt.date >= fecha_inicio]
         
         if fecha_fin:
-            # 👇 CLAVE: agregar 1 día y restar 1 segundo
-            fin = pd.to_datetime(fecha_fin) + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
-            df = df[df["Fecha_dt"] <= fin]
+            df = df[df["Fecha_dt"].dt.date <= fecha_fin]
         
-        df = df.drop(columns=["Fecha_dt"])
+        # Formato bonito para mostrar
+        df["Fecha"] = df["Fecha_dt"].dt.strftime("%Y-%m-%d %H:%M:%S")
         
-        # Eliminar columna auxiliar
         df = df.drop(columns=["Fecha_dt"])
 
         st.dataframe(df, use_container_width=True, hide_index=True)
