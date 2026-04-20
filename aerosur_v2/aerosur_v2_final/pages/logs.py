@@ -82,10 +82,31 @@ def render():
 
         df = pd.DataFrame(data)
 
-        # Filtro
-        filtro = st.selectbox("Filtrar por resultado", ["Todos", "Exitoso", "Fallido"])
-        if filtro != "Todos":
-            df = df[df["Resultado"].str.contains(filtro)]
+        # =========================
+        # 📅 FILTRO POR FECHAS
+        # =========================
+        st.markdown("### 📅 Filtrar por rango de fechas")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            fecha_inicio = st.date_input("Fecha inicio", value=None)
+        
+        with col2:
+            fecha_fin = st.date_input("Fecha fin", value=None)
+        
+        # Convertir columna Fecha a datetime
+        df["Fecha_dt"] = pd.to_datetime(df["Fecha"], errors="coerce")
+        
+        # Aplicar filtros
+        if fecha_inicio:
+            df = df[df["Fecha_dt"] >= pd.to_datetime(fecha_inicio)]
+        
+        if fecha_fin:
+            df = df[df["Fecha_dt"] <= pd.to_datetime(fecha_fin)]
+        
+        # Eliminar columna auxiliar
+        df = df.drop(columns=["Fecha_dt"])
 
         st.dataframe(df, use_container_width=True, hide_index=True)
 
