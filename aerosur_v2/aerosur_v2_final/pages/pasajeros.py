@@ -63,7 +63,7 @@ def render():
         if largo > 0:
             if largo < 9:
                 st.warning(f"⚠️ El pasaporte debe tener exactamente 9 caracteres. Llevas {largo}/9.")
-            elif largo ==9:
+            elif largo !=9:
                 st.success(✅ Longitud de pasaporte correcta (9/9).")
             else:
                 st.success("✅ Longitud de pasaporte correcta (9/9).")
@@ -71,7 +71,7 @@ def render():
         if st.button("REGISTRAR PASAJERO →", use_container_width=True):
             if not all([nombre, apellido, pasaporte, nacionalidad]):
                 st.error("❌ Completa todos los campos.")
-            elif len(pasaporte) == 9:
+            elif len(pasaporte) != 9:
                 st.error(f"❌ El pasaporte debe tener exactamente 9 caracteres. Actualmente tiene {len(pasaporte)}.")
             else:
                 try:
