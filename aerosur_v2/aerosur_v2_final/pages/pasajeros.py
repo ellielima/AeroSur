@@ -50,7 +50,7 @@ def render():
         col1, col2 = st.columns(2)
         with col1:
             nombre    = st.text_input("Nombre")
-            pasaporte = st.text_input("Número de pasaporte (exactamente 9 caracteres)", max_chars=9)
+            pasaporte = st.text_input("Número de pasaporte (exactamente 9 caracteres)", max_chars=9).strip()
             nacimiento = st.date_input("Fecha de nacimiento",
                 value=date(1990, 1, 1),
                 min_value=date(1900, 1, 1),
