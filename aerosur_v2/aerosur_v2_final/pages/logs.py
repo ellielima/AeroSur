@@ -82,33 +82,33 @@ def render():
 
         df = pd.DataFrame(data)
 
-      # =========================
-        # 📅 FILTRO POR FECHAS (FIX REAL)
+     # =========================
+        # 📅 FILTRO RÁPIDO POR FECHA
         # =========================
-        st.markdown("### 📅 Filtrar por rango de fechas")
+        st.markdown("### 📅 Filtrar por fecha")
         
-        col1, col2 = st.columns(2)
+        opcion = st.selectbox(
+            "Selecciona un rango",
+            ["Todos", "Hoy", "Ayer", "Últimos 5 días"]
+        )
         
-        with col1:
-            fecha_inicio = st.date_input("Fecha inicio")
+        # Convertir fecha correctamente (UTC → Guatemala)
+        df["Fecha_dt"] = pd.to_datetime(df["Fecha"], utc=True).dt.tz_convert("America/Guatemala")
         
-        with col2:
-            fecha_fin = st.date_input("Fecha fin")
+        hoy = pd.Timestamp.now(tz="America/Guatemala").date()
         
-        # Convertir correctamente (maneja UTC)
-        df["Fecha_dt"] = pd.to_datetime(df["Fecha"], utc=True)
+        if opcion == "Hoy":
+            df = df[df["Fecha_dt"].dt.date == hoy]
         
-        # Convertir a hora local (Guatemala UTC-6)
-        df["Fecha_dt"] = df["Fecha_dt"].dt.tz_convert("America/Guatemala")
+        elif opcion == "Ayer":
+            ayer = hoy - pd.Timedelta(days=1)
+            df = df[df["Fecha_dt"].dt.date == ayer]
         
-        # Aplicar filtro por SOLO fecha (sin hora)
-        if fecha_inicio:
-            df = df[df["Fecha_dt"].dt.date >= fecha_inicio]
+        elif opcion == "Últimos 5 días":
+            inicio = hoy - pd.Timedelta(days=5)
+            df = df[df["Fecha_dt"].dt.date >= inicio]
         
-        if fecha_fin:
-            df = df[df["Fecha_dt"].dt.date <= fecha_fin]
-        
-        # Formato bonito para mostrar
+        # Formato bonito
         df["Fecha"] = df["Fecha_dt"].dt.strftime("%Y-%m-%d %H:%M:%S")
         
         df = df.drop(columns=["Fecha_dt"])
